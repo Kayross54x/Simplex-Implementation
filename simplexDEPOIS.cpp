@@ -9,6 +9,7 @@ using namespace std;
 
 const double EPS = 1e-9;
 const double INF = numeric_limits<double>::infinity();
+
 void printVector(const vector<double>& vec) {
     for (double val : vec) {
         cout << fixed << setprecision(3) << val << " ";
@@ -30,7 +31,6 @@ struct SimplexOriginal {
                 D[i][j] = A[i][j];
 
         for (int i = 0; i < m; i++) {
-            // B[i] = n + i;
             D[i][n] = b[i];
         }
 
@@ -397,14 +397,23 @@ struct SimplexOriginal {
         cout << "m " << m << endl;
         cout << "n " << n << endl;
 
+        //printa a matriz D
+        cout << "D FINAL:" << endl;
+        for (const auto& row : D) {
+            for (double val : row) {
+                cout << setw(6) << val << " ";
+            }
+            cout << endl;
+        }
+
         vector<double> aux(n, 0.0);
 
         for (int base : B) {
-            for(int i = 0; i <= n - 1; i++) {
+            for(int i = 0; i < m; i++) {
                 cout << "i " << i << " base " << base << endl;
                 if(D[i][base] == 1){
                     
-                    aux[i] = D[i][n];
+                    aux[base] = D[i][n];
                     break;
                 }
             }
@@ -434,12 +443,12 @@ struct SimplexOriginal {
         cout << endl;
 
         cout << "==========================================SOLUCAO=======================================" << endl;
-        cout << "Valores do vetor x (que devemos atribuir às variaveis):" << endl;
-        int counter = 0;
-        for (int val : x) {
-            cout << "x[" << counter << "] = " << val << endl;
-            counter++;
-        }
+        // cout << "Valores do vetor x (que devemos atribuir às variaveis):" << endl;
+        // int counter = 0;
+        // for (int val : x) {
+        //     cout << "x[" << counter << "] = " << val << endl;
+        //     counter++;
+        // }
 
         return D[m][n];
     }
@@ -469,6 +478,18 @@ struct SimplexOriginal {
         }
         return solution;
     }
+
+    vector<double> getSolutionIlimited() {
+        vector<double> solution(n, 0.0);
+        for (int base : B) {
+            for (int i = 0; i < m; i++) {
+                if (D[i][base] == 1) {
+                    solution[base] = D[i][n];
+                }
+            }
+        }
+        return solution;
+    }
 };
 
 struct SimplexAuxiliar {
@@ -489,6 +510,7 @@ struct SimplexAuxiliar {
             B[i] = n + i;
             D[i][n] = b[i];
         }
+
         for (int j = 0; j < n; j++) {
             N[j] = j;
             if(c[j] != 0){
@@ -498,37 +520,25 @@ struct SimplexAuxiliar {
             }
         }
 
-        cout << "b size: " << B.size() << endl;
-        cout << "n size: " << N.size() << endl;
-
-        // for (int i = 0; i < k + 1; i++) {
-        //     for (int j = 0; j < k; j++) {
-        //         if(i == j) {
-        //             optimalCertificate[j][i] = 1;
-        //         } else {
-        //             optimalCertificate[j][i] = 0;
-        //         }
-        //     }
-        // }
-
         cout << "MATRIZ CERTIFICADO:" << endl;
 
         for (const auto& row : optimalCertificate) {
             for (double val : row) {
-                cout << val << " ";
+                cout << setw(6) << val << " ";
             }
             cout << endl;
         }
 
         c_original = c;
 
-        cout << "Antiga D da auxiliar:" << endl;
+        cout << "D da auxiliar:" << endl;
         for (const auto& row : D) {
             for (double val : row) {
-                cout << val << " ";
+                cout << setw(6) << val << " ";
             }
             cout << endl;
         }
+
         int m = D.size();    // Número de linhas
         int n = D[0].size(); // Número de colunas
 
@@ -553,18 +563,18 @@ struct SimplexAuxiliar {
             optimalCertificate[k][i] = sum;
         }
 
-        cout << "Nova D da auxiliar:" << endl;
+        cout << "Nova D após canonização: " << endl;
         for (const auto& row : D) {
             for (double val : row) {
-                cout << val << " ";
+                cout << setw(6) << val << " ";
             }
             cout << endl;
         }
 
-        cout << "NOVO CERTIFICADO auxiliar:" << endl;
+        cout << "NOVO CERTIFICADO da Auxiliar após canonização:" << endl;
         for (const auto& row : optimalCertificate) {
             for (double val : row) {
-                cout << val << " ";
+                cout << setw(6) << val << " ";
             }
             cout << endl;
         }
@@ -576,23 +586,17 @@ struct SimplexAuxiliar {
         // Normaliza a linha do pivô (divide todos os elementos por inv pro pivô ser 1)
         for (int j = 0; j <= n; j++) {
             D[r][j] *= inv;
-            // if (j != s) {
-            //     D[r][j] *= inv;
-            // }
         }
 
         for (int i = 0; i < n_original; i++) {
             optimalCertificate[r][i] *= inv;
-            // if (j != s) {
-            //     D[r][j] *= inv;
-            // }
         }
 
-        cout << "NOVA MATRIZ ELEMENTOS NORMALIZADOS" << endl;
+        cout << "NOVA MATRIZ ELEMENTOS NORMALIZADOS Com o valor do pivo" << endl;
 
         for (const auto& row : D) {
             for (double val : row) {
-                cout << setw(10) << val << " ";
+                cout << setw(6) << val << " ";
             }
             cout << endl;
         }
@@ -601,9 +605,7 @@ struct SimplexAuxiliar {
             //cout << "Olhando pra linha " << i << endl;
             if (i != r) {
                 double elementThatMultipliesPivotLine = D[i][s];
-                cout << "multiplicador da linha " << i << " " << elementThatMultipliesPivotLine * -1 << endl;
 
-                cout << "n_original " << n_original << endl;
                 for (int j = 0; j < n_original; j++) {
                     optimalCertificate[i][j] = optimalCertificate[i][j] + (elementThatMultipliesPivotLine * -1) * optimalCertificate[r][j];
                 }
@@ -620,17 +622,7 @@ struct SimplexAuxiliar {
             }
         }
 
-        // for (int i = 0; i < n_original + 1; i++) {
-        //     if (i != r) {
-        //         double elementThatMultipliesPivotLine = optimalCertificate[i][s];
-        //         for (int j = 0; j < n_original; j++) {
-        //             double newLineElement = optimalCertificate[i][j] + (elementThatMultipliesPivotLine * -1) * optimalCertificate[r][j];
-        //             optimalCertificate[i][j] = newLineElement;
-        //         }
-        //     }
-        // }
-
-        cout << "NOVO CERTIFICADO AQUI DENTRO DO PIVOT auxiliar:" << endl;
+        cout << "NOVO CERTIFICADO CONSIDERANDO ESSE PIVOT:" << endl;
         for (const auto& row : optimalCertificate) {
             for (double val : row) {
                 cout << setw(6) << val << " ";
@@ -638,42 +630,15 @@ struct SimplexAuxiliar {
             cout << endl;
         }
 
-        // Ajusta os elementos que não estão na linha ou coluna do pivô
-        // for (int i = 0; i <= m; i++) {
-        //     if (i != r) {
-        //         for (int j = 0; j <= n; j++) {
-        //             if (j != s) {
-        //                 D[i][j] -= D[r][j] * D[i][s] * inv;
-        //             }
-        //         }
-        //     }
-        // }
-        // Normaliza a linha do pivô
-        // for (int j = 0; j <= n; j++) {
-        //     if (j != s) {
-        //         D[r][j] *= inv;
-        //     }
-        // }
-        // Ajusta a coluna do pivô
-        // for (int i = 0; i <= m; i++) {
-        //     if (i != r) {
-        //         if(D[i][s] != 0){
-        //             D[i][s] *= -inv;
-        //         } else {
-        //             D[i][s] = 0;
-        //         }
-        //         // D[i][s] *= -inv;
-        //     }
-        // }
         D[r][s] = 1;  // Define o pivô como 1
         D[m][s] = 0;
 
         // Troca as variáveis básicas e não básicas
         swap(B[r], N[s]);
 
-        cout << "========================NOVA MATRIZ=======================================" << endl;
+        cout << "==================================NOVA MATRIZ=======================================" << endl;
 
-        cout << "A_aux:" << endl;
+        cout << "D NOVA:" << endl;
         for (const auto& row : D) {
             for (double val : row) {
                 cout << setw(10) << val << " ";
@@ -700,59 +665,22 @@ struct SimplexAuxiliar {
             }
             if (r == -1) return false;  // Problem é ilimitado //Se não houver linha i tal que D[i][s] > 0, então o problema é ilimitado
 
-            // Print the pivot step
-            cout << "Pivot Step: Entering variable index: " << s << ", Leaving variable index: " << r << endl;
-
             pivot(r, s);
         }
     }
 
     double solve(vector<double> &x, bool &isUnlimited, vector<int> &initialBases) {
-            // Print A_aux, b_aux, c_aux for debugging
-        cout << "A_aux_dentro_da_solve:" << endl;
-        for (const auto& row : D) {
-            for (double val : row) {
-                cout << val << " ";
-            }
-            cout << endl;
-        }
-
-        cout << "c_aux_dentro_da_solve:" << endl;
-        for (double val : D[m]) {
-            cout << val << " ";
-        }
-
-        // //PRINTAR VARIAVEIS BASICAS ANTES DO INICIO DO SIMPLEX:
-        // cout << "Variaveis basicas antes do inicio do simplex:" << endl;
-        // for (int i = 0; i < m; i++) {
-        //     cout << "B[" << i << "] = " << B[i] << endl;
-        // }
-        // //PRINTAR VARIAVEIS NAO BASICAS ANTES DO INICIO DO SIMPLEX:
-        // cout << "Variaveis nao basicas antes do inicio do simplex:" << endl;
-        // for (int i = 0; i < n; i++) {
-        //     cout << "N[" << i << "] = " << N[i] << endl;
-        // }
-
-        cout << endl;
         if (!simplex()) {
             isUnlimited = true;
             return -1;
         }
+
         isUnlimited = false;
         x = vector<double>(n);
+
         for (int i = 0; i < m; i++)
             if (B[i] < n)
                 x[B[i]] = D[i][n];
-
-        // cout << "Variaveis basicas depois do inicio do simplex:" << endl;
-        // for (int i = 0; i < m; i++) {
-        //     cout << "B[" << i << "] = " << B[i] << endl;
-        // }
-        // //PRINTAR VARIAVEIS NAO BASICAS ANTES DO INICIO DO SIMPLEX:
-        // cout << "Variaveis nao dpois antes do inicio do simplex:" << endl;
-        // for (int i = 0; i < n; i++) {
-        //     cout << "N[" << i << "] = " << N[i] << endl;
-        // }
 
         cout << "==========================================SOLUCAO=======================================" << endl;
         cout << "Valores do vetor x (que devemos atribuir às variaveis):" << endl;
@@ -760,7 +688,8 @@ struct SimplexAuxiliar {
             cout << "x[" << i << "] = " << x[i] << endl;
         }
 
-        cout << "MEME: " << m << "NENE: " << n << endl;
+        cout << "m: " << m << " n: " << n << endl;
+        //Pegando as bases iniciais pra original
         for (int c = 0; c < n; c++) {
             if(D[m][c] == 0) {
                 int pode = true;
@@ -776,24 +705,6 @@ struct SimplexAuxiliar {
         // initialBases = B;
 
         return D[m][n];
-    }
-
-    vector<double> getCertificateIlimited() {
-        vector<double> cert(n, 0.0);
-        for (int j = 0; j < n; j++) {
-            cert[j] = D[j][n];
-        }
-        return cert;
-    }
-
-    vector<double> getSolution() {
-        vector<double> solution(n, 0.0);
-        for (int i = 0; i < m; i++) {
-            if (B[i] < n) {
-                solution[B[i]] = D[i][n];
-            }
-        }
-        return solution;
     }
 
     vector<double> getCertificate() {
@@ -840,12 +751,12 @@ void generateAuxiliaryPL(const vector<vector<double>> &A, const vector<double> &
         for (int j = 0; j < n; j++) {
             if(i == j) {
                 if(b_aux[j] < 0) {
-                    optimalCertificate[j][i] = -1;
+                    optimalCertificate[i][j] = -1;
                 } else {
-                    optimalCertificate[j][i] = 1;
+                    optimalCertificate[i][j] = 1;
                 }
             } else {
-                optimalCertificate[j][i] = 0;
+                optimalCertificate[i][j] = 0;
             }
         }
     }
@@ -868,32 +779,11 @@ void generateAuxiliaryPL(const vector<vector<double>> &A, const vector<double> &
         A_aux[i].resize(m + n, 0);
         A_aux[i][m + i] = 1; // Variável artificial
     }
+
     c_aux.resize(m + n, 0);
     for (int i = 0; i < n; i++) {
         c_aux[m + i] = -1; // Coeficiente da função objetivo para a variável artificial
     }
-
-    // Print A_aux, b_aux, c_aux for debugging
-    cout << "A_aux:" << endl;
-    for (const auto& row : A_aux) {
-        for (double val : row) {
-            cout << val << " ";
-        }
-        cout << endl;
-    }
-
-    cout << "b_aux:" << endl;
-    for (double val : b_aux) {
-        cout << val << " ";
-    }
-    cout << endl;
-
-    cout << "c_aux:" << endl;
-    for (double val : c_aux) {
-        cout << val << " ";
-    }
-    cout << endl;
-    cout << "========================================================================" << endl;
 }
 
 int main() {
@@ -934,8 +824,7 @@ int main() {
 
         if (isUnlimitedOriginal) {
             cout << "ilimitada" << endl;
-            printVector(originalSimplex.getSolution());
-            printVector(originalSimplex.getCertificateIlimited());
+            printVector(originalSimplex.getSolutionIlimited());
         } else {
             cout << "otima" << endl;
             cout << fixed << setprecision(3) << result << endl;
