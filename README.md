@@ -5,7 +5,9 @@ O objetivo deste trabalho é resolver Programações Lineares (PLs) gerais, a se
 Em outras palavras, vamos fazer uma aplicação do método simplex, que irá resolver programações lineares definidas por:
 
 MAX cT * x
+
 ST Ax = b
+
 x >= 0
 
 Encontre o certificado que comprove seu resultado.
@@ -21,6 +23,7 @@ Cada uma das 𝑛 linhas seguintes contém 𝑚+1 valores inteiros que represent
 Note que esses valores, incluindo 𝑏𝑖, podem ser negativos.
 
 1 ≤ 𝑛 ≤ 100
+
 1 ≤ 𝑚 ≤ 100
 
 Saídas:
